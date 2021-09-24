@@ -30,6 +30,7 @@ class nits_crawling:
         self.author = {}
         self.paper = []
         self.papers = []
+        self.info = {}
         try:
             self.producer = KafkaProducer(bootstrap_servers=  self.host+ ':' + self.kafka_port, 
                                 value_serializer=lambda x: json.dumps(x).encode('utf-8'))
@@ -40,36 +41,36 @@ class nits_crawling:
     def main_title(self, soup):
         try:
             authorInfo = {}
-
-            thumnails = []
-            thumnail = soup.select_one('#viewForm > div > div > div.article.bdr3.p20 > div.userphoto.po_rel > img')
-            thumnails.append(thumnail)
-            authorInfo["thumnails"] = thumnails
+            infolist = []
+            thumnails  = []
+            thumnail   = soup.select_one('#viewForm > div > div > div.article.bdr3.p20 > div.userphoto.po_rel > img')
+            thumnails.append(thumnail['src'])
+            self.info["thumnails"] = thumnails
 
             name = soup.select_one('.mb5').text
             name = name.lstrip()
             name = ' '.join(name.split())
-            authorInfo["name"] = name
+            self.info["name"] = name
 
             details = soup.find("div", attrs={"class":"m0 lh15 f13"}).get_text()
             details = ' '.join(details.split())
             details = details.lstrip()
-            authorInfo["details"] = details
+            self.info["details"] = details
 
             edu = []
             for tag in soup.select('dd.bd0'):
                 ed = tag.get_text(separator='|br|', strip=True).split('|br|')
                 # ed = tag.get_text(strip=True, separator=" ")
                 edu.append(ed)
-            authorInfo["Education"] = edu
+            self.info["Education"] = ed
             
             carear = []
             for tag in soup.select('ul.mt20'):
                 ca = tag.get_text(separator='|li|', strip=True).split('|li|')
                 carear.append(ca)
-            authorInfo["carear"] = carear
-            
-            self.author["authorInfo"] = authorInfo
+            self.info["carear"] = ca
+            infolist.append(self.info)
+            self.author["authorInfo"] = infolist
 
             """ 논문 수집 """
             a = soup.find('button',id = 'paper')      #여기서부터는 논문파트 
