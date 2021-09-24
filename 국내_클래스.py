@@ -16,10 +16,13 @@ import sys
 def __main__ ():
     a = len(sys.argv)  
     for i in range(a):
-        print(sys.argv[i])
-        input_name = sys.argv[i]
-        nits_crawling(input_name).start_crwal()
-    
+        if i == 0:
+            continue
+        else:
+            print(sys.argv[i])
+            input_name = sys.argv[i]
+            nits_crawling(input_name).start_crwal()
+        
 class nits_crawling:
     def __init__(self, input_name):
         
@@ -275,12 +278,9 @@ class nits_crawling:
             print("a출력",type(a))
             pprint.pprint(self.author)
             try:
-                self.producer.send("test", value=a['reference'])
+                self.producer.send("test", value=a)
                 print("3번전송")
-                self.producer.send("test", value=a['rnd'])
-                print("2번전송")
-                self.producer.send("test", value=a['authorInfo'])
-                print("1번전송")
+                
                 
                 
                 self.producer.flush()
