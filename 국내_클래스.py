@@ -10,12 +10,15 @@ import pprint
 import math
 from kafka import KafkaProducer
 import json
+from json import dumps
 import sys
-
+# producer = KafkaProducer(bootstrap_servers= "localhost"+":9092", value_serializer=lambda x: json.dumps(x).encode('utf-8'))
 def __main__ ():
-    input_name = sys.argv[1]  
-    print(input_name)
-    nits_crawling(input_name).start_crwal()
+    a = len(sys.argv)  
+    for i in range(a):
+        print(sys.argv[i])
+        input_name = sys.argv[i]
+        nits_crawling(input_name).start_crwal()
     
 class nits_crawling:
     def __init__(self, input_name):
@@ -23,7 +26,9 @@ class nits_crawling:
         self.name = input_name
         self.host = '127.0.0.1'
         self.kafka_port = '9092'
-        self.driver_path = "C:/Users/admin/Desktop/test/chromedriver.exe"
+        self.driver_path = "./chromedriver.exe"
+        #  C:/Users/kjh19/OneDrive/바탕 화면/test/chromedriver.exe // 노트북
+        #  C:/Users/admin/Desktop/test/chromedriver.exe  // 연구실 컴
         self.chrome_options = Options()
         self.chrome_options.add_argument('window-size=1920,1080')
         self.driver = webdriver.Chrome(self.driver_path, chrome_options=self.chrome_options)
@@ -31,8 +36,7 @@ class nits_crawling:
         self.paper = []
         self.papers = []
         try:
-            self.producer = KafkaProducer(bootstrap_servers=  self.host+ ':' + self.kafka_port, 
-                                value_serializer=lambda x: json.dumps(x).encode('utf-8'))
+            self.producer = KafkaProducer(bootstrap_servers= "127.0.0.1"+":9092", value_serializer=lambda x: json.dumps(x).encode('utf-8'))
         except Exception as e:
             print(e)
             print("kafka 생성 오류")
@@ -255,7 +259,7 @@ class nits_crawling:
             self.driver.find_element_by_xpath('/html/body/form[1]/nav/div[2]/button[4]').click()
             time.sleep(2)
             for i in range(3):
-                time.sleep(1)
+                time.sleep(0.5)
                 i+=1
                 i = str(i)
                 js = "fn_egov_link_page('" + i + "');"
@@ -265,16 +269,33 @@ class nits_crawling:
                 soup = BeautifulSoup(html, 'html.parser')
                 self.rnd_crawl(soup)
             self.author["rnd"] = self.papers
+            a = self.author
+            print("a출력",a)
+            print("a출력",type(a))
             pprint.pprint(self.author)
+            try:
+                self.producer.send("test", value=a['reference'])
+                print("3번전송")
+                self.producer.send("test", value=a['rnd'])
+                print("2번전송")
+                self.producer.send("test", value=a['authorInfo'])
+                print("1번전송")
+                
+                
+                self.producer.flush()
+            except Exception as e:
+                print(e)
+                print("kafka 전송이 왜 ...") 
         except Exception as e:
             print(e)
             print("start crawling 오류")
-    # try:
-    #     producer.send('test', value=a)
-    #     producer.flush()
-    # except Exception as e:
-    #     print(e)
-    #     print("kafka send 오류")
+    def send_kafka(self,a):
+        try:
+            self.producer.send('test', value=a)
+            self.producer.flush()
+        except Exception as e:
+            print(e)
+            print("kafka send 오류")
 
         
 
