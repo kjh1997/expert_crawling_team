@@ -40,7 +40,8 @@ class nits_crawling:
         self.papers = []
         self.info = {}
         try:
-            self.producer = KafkaProducer(bootstrap_servers= "127.0.0.1"+":9092", value_serializer=lambda x: json.dumps(x).encode('utf-8'))
+            self.producer = KafkaProducer(bootstrap_servers= "127.0.0.1"+":9092", 
+                            value_serializer=lambda x: json.dumps(x).encode('UTF8'))
         except Exception as e:
             print(e)
             print("kafka 생성 오류")
@@ -53,6 +54,7 @@ class nits_crawling:
             thumnail   = soup.select_one('#viewForm > div > div > div.article.bdr3.p20 > div.userphoto.po_rel > img')
             thumnails.append(thumnail['src'])
             self.info["thumnails"] = thumnails
+            
 
             name = soup.select_one('.mb5').text
             name = name.lstrip()
@@ -170,6 +172,8 @@ class nits_crawling:
         except Exception as e:
             print(e)
             print("논문 파트 오류")
+
+
     def rnd_crawl(self, soup):
         try:    
             brs  = soup.select('#rndInfo > li')
@@ -179,8 +183,6 @@ class nits_crawling:
                 br.select_one('p')
                 try:
                     print("num : ", num)
-                    
-                    
                     
                     
                     title = br.select_one('a')
@@ -200,12 +202,13 @@ class nits_crawling:
                     num1 = br_list[2].find("<")
                     brlist2 = br_list[2][:num1]
                     a['RND_title'] = title.replace("\t","")
-                    a['RND_num'] = RND_num
-                    a['RND_year'] = RND_year
-                    a['RND_period'] = RND_period
-                    a['RND_bz_name'] = RND_bz_name
+                    a['RND_num'] = RND_num.replace("\t",'')
+                    a['RND_year'] = RND_year.replace("\t",'')
+                    a['RND_period'] = RND_period.replace("\t",'')
+                    a['RND_bz_name'] = RND_bz_name.replace("\t",'')
 
-                    a['RND_ins'] = brlist2
+                    a['RND_ins'] = brlist2.replace("\t",'')
+                
                     self.papers.append(a)
                     print(brlist2)
                 except Exception as e:
@@ -268,7 +271,7 @@ class nits_crawling:
                 i = str(i)
                 js = "fn_egov_link_page('" + i + "');"
                 self.driver.execute_script(js)
-                time.sleep(1)
+                time.sleep(0.5)
                 html = self.driver.page_source
                 soup = BeautifulSoup(html, 'html.parser')
                 self.rnd_crawl(soup)
@@ -293,7 +296,6 @@ class nits_crawling:
     def send_kafka(self,a):
         try:
             self.producer.send('test', value=a)
-            self.producer.flush()
         except Exception as e:
             print(e)
             print("kafka send 오류")
