@@ -45,7 +45,7 @@ class nits_crawling:
         except Exception as e:
             print(e)
             print("kafka 생성 오류")
-
+#---------------------------기본 정보 수집 ------------------------------------
     def main_title(self, soup):
         try:
             authorInfo = {}
@@ -91,7 +91,7 @@ class nits_crawling:
             pagenum = math.ceil(num/10)
         except Exception as e:
             print(e)
-
+#--------------------논문 수집 ------------------------------ 
     def crawl_paper(self, refer):
         try:
             for num, ref in enumerate(refer[:10]):
@@ -173,7 +173,7 @@ class nits_crawling:
             print(e)
             print("논문 파트 오류")
 
-
+# ------------rnd 크롤링 -----------------------------
     def rnd_crawl(self, soup):
         try:    
             brs  = soup.select('#rndInfo > li')
