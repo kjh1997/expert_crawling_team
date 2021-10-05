@@ -94,14 +94,7 @@ class nits_crawling:
             infolist.append(self.info)
             self.author["authorInfo"] = infolist
 
-            """ 논문 수집 """
-            a = soup.find('button',id = 'paper')      #여기서부터는 논문파트 
-            text = a.get_text()
-            b = text.rfind('/')
-            c = text.rfind('건')
-            num = math.ceil(int(text[b+1:c])/10)
-            # print(num)
-            pagenum = math.ceil(num/10)
+           
         except Exception as e:
             print(e)
 
