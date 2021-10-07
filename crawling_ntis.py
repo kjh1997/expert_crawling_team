@@ -227,7 +227,34 @@ class nits_crawling:
         except Exception as e:
             print(e)
             print("rnd 파트 오류")
-            
+    def crawl_science_on(self):
+        # SCIENCON 접속 (여기서부터 SCIENCEON)
+        self.driver.find_element_by_xpath('/html/body/form[1]/div/div/div[1]/div[2]/div[2]/a[1]').click()
+        time.sleep(3)
+
+        # SCIENCEON 화면 지정
+        self.driver.switch_to_window(self.driver.window_handles[2])
+
+        # 저자 고유 ID 크롤링 (SCIENCEON)
+        url = self.driver.current_url
+        cn1 = url.find('cn=')
+        cn2 = url.find('&')
+        author_id = f'{url[cn1+3:cn2]}' # 저자 고유ID
+        print(author_id)
+
+        # 크롤링
+        soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+
+        time.sleep(1)
+
+        # info_ScienceOn -> SCIENCEON 저자 전문분야
+        info_ScienceOn = self.driver.find_element_by_xpath('/html/body/div[3]/div/div/div[6]/div[2]').text
+        print(info_ScienceOn)
+        self.author["science_on_id"] = info_ScienceOn
+        # 크롤링 종료
+        self.driver.close()
+        self.driver.switch_to_window(self.driver.window_handles[1])
+
 
     def start_crwal(self):
         try:
@@ -363,7 +390,7 @@ class nits_crawling:
                 self.main_title(soup)
                 print("title" , self.author)
                 self.driver.find_element_by_xpath('/html/body/form[1]/nav/div[2]/button[2]').click()
-                
+                self.crawl_science_on()
 
                 a = soup.find('button',id = 'paper')      #여기서부터는 논문파트 
                 text = a.get_text()

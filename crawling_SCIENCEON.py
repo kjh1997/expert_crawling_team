@@ -1,6 +1,6 @@
 from selenium import webdriver
 from bs4 import BeautifulSoup
-from pymongo import MongoClient, mongo_client
+# from pymongo import MongoClient, mongo_client
 import json
 from json import loads, dumps
 import time
@@ -9,15 +9,15 @@ import math
 
 
 # mongoDB
-pyclient = MongoClient('localhost', 27017)
-mydb = pyclient["testDB"]
-mycol = mydb["test"]
+# pyclient = MongoClient('localhost', 27017)
+# mydb = pyclient["testDB"]
+# mycol = mydb["test"]
 
 name = "유재수"
 
 options = webdriver.ChromeOptions()
 options.add_experimental_option("excludeSwitches", ["enable-logging"])
-driver = webdriver.Chrome("./chromedriver (2).exe", options=options)
+driver = webdriver.Chrome("./chromedriver.exe", options=options)
 
 # NTIS 이동
 driver.get("https://www.ntis.go.kr/ThSearchHumanDetailView.do")
@@ -74,7 +74,9 @@ print(info_ScienceOn)
 
 
 # 크롤링 종료
-main = driver.window_handles 
-for handle in main: 
-    driver.switch_to_window(handle) 
-    driver.close()
+
+
+
+driver.close()
+driver.switch_to_window(driver.window_handles[1])
+print(driver.current_url)
