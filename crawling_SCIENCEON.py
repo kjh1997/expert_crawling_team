@@ -64,7 +64,7 @@ author_id = f'{url[cn1+3:cn2]}' # 저자 고유ID
 print(author_id)
 
 # 크롤링
-soup = BeautifulSoup(driver.page_source, 'lxml')
+soup = BeautifulSoup(driver.page_source, 'html.parser')
 
 time.sleep(1)
 
