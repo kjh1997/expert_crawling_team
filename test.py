@@ -32,88 +32,68 @@ def crawl_paper(refer):
     try:
         for num, ref in enumerate(refer[:10]):
             a= {}
-            title = ref.select_one('p')
-            title = title.text
-            title = re.sub('&nbsp; | &nbsp;| \n|\t|\r','',title).replace("\xa0","")
-            a["title"] = title
-            print(a)
-        
-            ref.p.decompose()
-            refs = ref.get_text(separator='|br|', strip=True).split('|br|')
-            partition = refs[1]
-            
-            print(num,"번째 coau",refs[0])
-            # print(num,"번째 refs",refs[1])   
-            # a[i][num]['coau']=refs[0]
-            # a[i][num]['reference']=refs[1]
+            # # 자바스크립트 수집 코드
             # try:
-            
-            num1 = partition.rfind("[")
-            num2 = partition.rfind("]")+1
-            num3 = partition.rfind("(")
-            num4 = partition.rfind(")")+1
-            try:
-                if partition.index('[') == True and partition.index(']') == True:
-                    partition = refs[0]
-                    if num1 == -1 and num3 == -1:
-                        a["ref1"] = partition.replace("\t","")
-                        a["ref2"] = ""
-                        a["year"] = ""
-                        print("분할",partition)
-
-                    elif num1 == -1 and num3 >= 0:
-                        a["ref1"] = partition[:num3].replace("\t","")
-                        a["ref2"] = ""
-                        
-                        a["year"] = partition[num3:num4]
-                        print("ref1", partition[:num3])
-
-                        print("year", partition[num3:num4])
-                    
-                    else:
-                        a["ref1"] = partition[:num1].replace("\t","")
-                        a["ref2"] = partition[num1:num2]
-                        a["year"] = partition[num3:num4]
-                        print("ref1", partition[:num1])
-                        print("ref2", partition[num1:num2])
-                        print("year", partition[num3:num4])
-            
-
-                elif num1 == -1 and num3 == -1:
-                    a["ref1"] = partition.replace("\t","")
-                    a["ref2"] = ""
-                    a["year"] = ""
-                    print("분할",partition)
-
-                elif num1 == -1 and num3 >= 0:
-                    a["ref1"] = partition[:num3].replace("\t","")
-                    a["ref2"] = ""
-                    
-                    a["year"] = partition[num3:num4]
-                    print("ref1", partition[:num3])
-
-                    print("year", partition[num3:num4])
+            #     js_crawl = ref.select_one('p > a:nth-child(3)')['onclick']
+            #     e  = js_crawl.find("('")
+            #     f  = js_crawl.find("')")
                 
-                else:
-                    a["ref1"] = partition[:num1].replace("\t","")
-                    a["ref2"] = partition[num1:num2]
-                    a["year"] = partition[num3:num4]
-                    print("ref1", partition[:num1])
-                    print("ref2", partition[num1:num2])
-                    print("year", partition[num3:num4])
-            except Exception as e:
-                    print(e)
-            print(a)
-            paper.append(a)
+            #     js_Data = js_crawl[e+2:f]
+            #     print(js_Data)
+            
+            # except Exception as e:
+            #     js_Data = ""
+            # # 자바스크립트 수집 코드 종료
+        
+            # # 논문 제목 수집 시작
+            # try:
+            #     title = ref.select_one('p > a > span')
+            #     title = title.text
+                
+            #     if title == "[ScienceON]":
+            #         print(title,"수정 예정")
+            #         title = ref.select_one('p')
+            #         title = title.text
+            #         title = re.sub('&nbsp; | &nbsp;| \n|\t|\r','',title).replace("\xa0","")
+      
+            #     print(title)    
+            #     a["title"] = title
+            # except Exception as e:
+            #     title = ref.select_one('p')
+            #     title = title.text
+            #     title = re.sub('&nbsp; | &nbsp;| \n|\t|\r','',title).replace("\xa0","")
+            #     print(title)    
+            #     a["title"] = title
+            # # 논문 제목 수집 종료
+
+
+            # 공저자, 교신저자, 학회지 수집 시작
+
+            ref.p.decompose()
+            print(ref)
+           
+
+
+            
+            
+            # title = title.text
+            # print(title)
+            # title = re.sub('&nbsp; | &nbsp;| \n|\t|\r','',title).replace("\xa0","")
+            # # a["title"] = title
+            # # print(a)
+
+            # ref.p.decompose()
+            # refs = ref.get_text(separator='|br|', strip=True).split('|br|')
+            # print(refs)
+            # print(a)
+            # paper.append(a)
     except Exception as e:
         print(e)
         print("논문 파트 오류")
 
 start = time.time()
 driver.get("https://www.ntis.go.kr/ThSearchHumanDetailView.do")
-
 driver.find_element_by_xpath('/html/body/div[1]/div[2]/div[2]/button[1]').click()
-
 driver.switch_to_window(driver.window_handles[1])  # 로그인창으로 전환 이거는 빼면 작동 x
 driver.find_element_by_xpath('/html/body/div/form/label[2]/input').send_keys("normaljun95")
 driver.find_element_by_xpath('/html/body/div/form/label[4]/input').send_keys("harrypotter95^") #아이디와 비밀번호
@@ -149,15 +129,15 @@ num = math.ceil(int(text[b+1:c])/10)
 # print(num)
 # pagenum = math.ceil(num/10)
 print(num)
-for i in range(3):      
+for i in range(1):      
 
     print("실행1")
     # print(a)
     time.sleep(0.5)
     pagesnum = i+1
     jsn = str(pagesnum)
-    js = "fn_egov_link_page('" + jsn + "');"
-    driver.execute_script("fn_egov_link_page('" + jsn + "');")
+    js = "fn_egov_link_page('" + "jsn" + "');"
+    driver.execute_script("fn_egov_link_page('" + "28" + "');")
     print(js)
     time.sleep(0.5)
     html = driver.page_source
