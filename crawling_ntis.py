@@ -20,7 +20,7 @@ def __main__ ():
         if i ==0:
             continue
         print(sys.argv[i])
-    input_name = "유재수"
+    input_name = "안병철"
     input_idAgency = "충북대학교"
     kotitle = "Provenance를 고려한 소셜 시맨틱 웹에서 클라우드 기반 빅 데이터 저장 및 처리"
     
@@ -30,13 +30,13 @@ def __main__ ():
 
 class nits_crawling:
     def __init__(self, input_name,input_idAgency,kotitle):
-        
+         
         self.name = input_name
         self.idAgency = input_idAgency
         self.kotitle = kotitle
         self.host = '127.0.0.1'
         self.kafka_port = '9092'
-        self.driver_path = "./chromedriver (2).exe"
+        self.driver_path = "./chromedriver.exe"
         #  C:/Users/kjh19/OneDrive/바탕 화면/test/chromedriver.exe // 노트북
         # ./chromedriver (2).exe  // 연구실 컴
         # /home/search/apps/dw/chromedriver 서버컴
@@ -51,6 +51,7 @@ class nits_crawling:
         self.papers = []
         self.info = {}
         self.test = []
+        self.infolist = []
         self.cnt = 0
         try:
             self.producer = KafkaProducer(bootstrap_servers= "localhost:9092", value_serializer=lambda x: json.dumps(x).encode('utf-8'))
@@ -91,8 +92,7 @@ class nits_crawling:
                 ca = tag.get_text(separator='|li|', strip=True).split('|li|')
                 carear.append(ca)
             self.info["carear"] = ca
-            infolist.append(self.info)
-            self.author["authorInfo"] = infolist
+            print("main title 크롤 종료")
 
            
         except Exception as e:
@@ -102,81 +102,132 @@ class nits_crawling:
 
     def crawl_paper(self, refer):
         try:
-            for num, ref in enumerate(refer[:10]):
+            for num, ref in enumerate(refer[:-1]):
                 a= {}
-                title = ref.select_one('p')
-                title = title.text
-                title = re.sub('&nbsp; | &nbsp;| \n|\t|\r','',title).replace("\xa0","")
-                a["title"] = title
-                print(a)
-            
-                ref.p.decompose()
-                refs = ref.get_text(separator='|br|', strip=True).split('|br|')
-                partition = refs[1]
-                
-                print(num,"번째 coau",refs[0])
-                # print(num,"번째 refs",refs[1])   
-                # a[i][num]['coau']=refs[0]
-                # a[i][num]['reference']=refs[1]
-                # try:
-                
-                num1 = partition.rfind("[")
-                num2 = partition.rfind("]")+1
-                num3 = partition.rfind("(")
-                num4 = partition.rfind(")")+1
+                ############### 자바스크립트 수집 코드 ##############
                 try:
-                    if partition.index('[') == True and partition.index(']') == True:
-                        partition = refs[0]
-                        if num1 == -1 and num3 == -1:
-                            a["ref1"] = partition.replace("\t","")
-                            a["ref2"] = ""
-                            a["year"] = ""
-                            print("분할",partition)
+                    js_crawl = ref.select('p > a')
+                    print(type(js_crawl))
 
-                        elif num1 == -1 and num3 >= 0:
-                            a["ref1"] = partition[:num3].replace("\t","")
-                            a["ref2"] = ""
-                            
-                            a["year"] = partition[num3:num4]
-                            print("ref1", partition[:num3])
+                    for i in js_crawl:
+                        print(i["title"])
+                        print(i)
+                        if "NDSL 상세보기" == i["title"]:
+                            e  = i["onclick"].find("('")
+                            f  = i["onclick"].find("')")
+                            js_Data = i["onclick"][e+2:f]
+                    print("자바스크립트",js_Data)
+                
+                except Exception as e:
+                    print(e)
+                    js_Data = ""
+                    print("자바스크립트",js_Data)
+                
+                a["js_scienceon"] = js_Data
+                js_Data = ""
 
-                            print("year", partition[num3:num4])
+                ############ 자바스크립트 수집 코드 종료 ##############
+
+                ############### 논문 제목 수집 시작  ##############
+                try:
+                    title = ref.select_one('p > a > span')
+                    title = title.text
+                    
+                    if title == "[ScienceON]":
                         
-                        else:
-                            a["ref1"] = partition[:num1].replace("\t","")
-                            a["ref2"] = partition[num1:num2]
-                            a["year"] = partition[num3:num4]
-                            print("ref1", partition[:num1])
-                            print("ref2", partition[num1:num2])
-                            print("year", partition[num3:num4])
+                        title = ref.select_one('p')
+                        title = title.text
+                        title = re.sub('&nbsp; | &nbsp;| \n|\t|\r','',title).replace("\xa0","")
+                        title = title.replace("[ScienceON]","")
+                    
+                    print(title) 
+                    print("1")
+                except Exception as e:
+                    title = ref.select_one('p')
+                    title = title.text
+                    title = re.sub('&nbsp; | &nbsp;| \n|\t|\r','',title).replace("\xa0","")
+                    print(title)    
+                    
+                    print("2")
+                a["title"] = title
+                ############## #논문 제목 수집 종료 ############## 
+                
                 
 
-                    elif num1 == -1 and num3 == -1:
-                        a["ref1"] = partition.replace("\t","")
-                        a["ref2"] = ""
-                        a["year"] = ""
-                        print("분할",partition)
 
-                    elif num1 == -1 and num3 >= 0:
-                        a["ref1"] = partition[:num3].replace("\t","")
-                        a["ref2"] = ""
-                        
-                        a["year"] = partition[num3:num4]
-                        print("ref1", partition[:num3])
-
-                        print("year", partition[num3:num4])
-                    
-                    else:
-                        a["ref1"] = partition[:num1].replace("\t","")
-                        a["ref2"] = partition[num1:num2]
-                        a["year"] = partition[num3:num4]
-                        print("ref1", partition[:num1])
-                        print("ref2", partition[num1:num2])
-                        print("year", partition[num3:num4])
+                ############### 공저자, 교신저자, 학회지 수집 시작 ##############
+                try:
+                    ref.p.decompose()
                 except Exception as e:
-                        print(e)
-                print(a)
+                    print("p태그가 없습니다.")   
+                try:     
+                    ref.span.decompose()
+                except Exception as e:
+                    print("span태그가 없습니다.")   
+                
+                refs = ref.get_text(separator='|br|', strip=True).split('|br|') 
+                
+
+                if len(refs) == 1:
+                    a["coau"] = ""
+                    partition = refs[0]
+                    num1 = partition.rfind("[")
+                    num2 = partition.rfind("]")+1
+                    num3 = partition.rfind("(")
+                    num4 = partition.rfind(")")+1  
+                    
+                    if num1 != -1:
+                        ref2 = partition[num1:num2]
+                    else:
+                        ref2 = ""
+                    if num3 != -1:    
+                        year = partition[num3:num4] 
+                    else:
+                        year = ""
+                    
+                    if num1 == -1 and num3 == -1:
+                        ref1 = partition
+                    elif num3 ==-1:
+                        ref1 = partition[:num1]
+                    elif num1 == -1:
+                        ref1 = partition[:num3]
+                    else:
+                        ref1 = partition[:num1]
+
+
+                elif len(refs) == 2:
+                    a["coau"] = refs[0]
+                    partition = refs[1]
+                    num1 = partition.rfind("[")
+                    num2 = partition.rfind("]")+1
+                    num3 = partition.rfind("(")
+                    num4 = partition.rfind(")")+1  
+                    if num1 != -1:
+                        ref2 = partition[num1:num2]
+                    else:
+                        ref2 = ""
+                    if num3 != -1:    
+                        year = partition[num3:num4] 
+                    else:
+                        year = ""
+                    
+                    if num1 == -1 and num3 == -1:
+                        ref1 = partition
+                    elif num3 ==-1:
+                        ref1 = partition[:num1]
+                    elif num1 == -1:
+                        ref1 = partition[:num3]
+                    else:
+                        ref1 = partition[:num1]
+                
+                a["year"] = year.replace("(","").replace(")","")
+                a["ref1"] = ref1.replace("\t","")
+                a["ref2"] = ref2.replace("\t","")
+
+                ############### 공저자, 교신저자, 학회지 수집 종료 ##############
+                pprint.pprint(a)
                 self.paper.append(a)
+                
         except Exception as e:
             print(e)
             print("논문 파트 오류")
@@ -227,34 +278,7 @@ class nits_crawling:
         except Exception as e:
             print(e)
             print("rnd 파트 오류")
-    def crawl_science_on(self):
-        # SCIENCON 접속 (여기서부터 SCIENCEON)
-        self.driver.find_element_by_xpath('/html/body/form[1]/div/div/div[1]/div[2]/div[2]/a[1]').click()
-        time.sleep(3)
-
-        # SCIENCEON 화면 지정
-        self.driver.switch_to_window(self.driver.window_handles[2])
-
-        # 저자 고유 ID 크롤링 (SCIENCEON)
-        url = self.driver.current_url
-        cn1 = url.find('cn=')
-        cn2 = url.find('&')
-        author_id = f'{url[cn1+3:cn2]}' # 저자 고유ID
-        print(author_id)
-
-        # 크롤링
-        soup = BeautifulSoup(self.driver.page_source, 'html.parser')
-
-        time.sleep(1)
-
-        # info_ScienceOn -> SCIENCEON 저자 전문분야
-        info_ScienceOn = self.driver.find_element_by_xpath('/html/body/div[3]/div/div/div[6]/div[2]').text
-        print(info_ScienceOn)
-        self.author["science_on_id"] = info_ScienceOn
-        # 크롤링 종료
-        self.driver.close()
-        self.driver.switch_to_window(self.driver.window_handles[1])
-
+            
 
     def start_crwal(self):
         try:
@@ -287,6 +311,7 @@ class nits_crawling:
                 self.driver.find_element_by_xpath('/html/body/div[5]/div/div/div[3]/form/div[3]/div[2]/div[1]/div/a[2]').click()
                
             self.driver.switch_to_window(self.driver.window_handles[1])
+            # print("여기인가?")
             soup = BeautifulSoup(self.driver.page_source, 'html.parser')
             
             self.driver.find_element_by_xpath('/html/body/form[1]/nav/div[2]/button[4]').click()
@@ -297,7 +322,7 @@ class nits_crawling:
             num = math.ceil(int(text[b+1:c])/10)-1
             print(num)
             time.sleep(2)
-            for i in range(num):
+            for i in range(2):
                 time.sleep(0.5)
                 i+=1
                 i = str(i)
@@ -309,12 +334,14 @@ class nits_crawling:
                 self.rnd_crawl(soup)
             #self.author["rnd"] = self.papers
             print(self.test)
-            if self.kotitle in self.test:
-                self.author["rnd"] = self.papers
-            else:
-                print("없으니까 다음으로 넘어갑니다.")  
-                self.cnt = 1
-                time.sleep(3)  
+            #### 파라미터 값이 존재하는지 검사
+            # if self.kotitle in self.test:
+            #     self.author["rnd"] = self.papers
+            # else:
+            #     print("없으니까 다음으로 넘어갑니다.")  
+            #     self.cnt = 1
+            #     time.sleep(3)  
+
               #---------------------처음에 들어간 저자가 다른 사람일 경우------------------        
             if self.cnt == 1:
                 print("다시 시작")
@@ -363,7 +390,7 @@ class nits_crawling:
                 # print(num)
                 # pagenum = math.ceil(num/10)
                 print(num)
-                for i in range(3):      
+                for i in range(num):      
                 
                     print("실행1")
                     # print(a)
@@ -387,13 +414,53 @@ class nits_crawling:
                     
           #---------------------정상실행일때------------------        
             else:
+                
+                # time.sleep(10)
                 self.main_title(soup)
-                print("title" , self.author)
-                self.driver.find_element_by_xpath('/html/body/form[1]/nav/div[2]/button[2]').click()
-                self.crawl_science_on()
 
+                ####################3 상준이형 추가 코드 ############################
+                self.driver.find_element_by_xpath('/html/body/form[1]/div/div/div[1]/div[2]/div[2]/a[1]').click()
+                time.sleep(3)
+
+                # SCIENCEON 화면 지정
+                self.driver.switch_to_window(self.driver.window_handles[2])
+
+                # 저자 고유 ID 크롤링 (SCIENCEON)
+                url = self.driver.current_url
+                cn1 = url.find('cn=')
+                cn2 = url.find('&')
+                author_id = f'{url[cn1+3:cn2]}' # 저자 고유ID
+                print(author_id)
+
+                # 크롤링
+                soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+
+                time.sleep(1)
+
+                # info_ScienceOn -> SCIENCEON 저자 전문분야
+                info_ScienceOn = self.driver.find_element_by_xpath('/html/body/div[3]/div/div/div[6]/div[2]').text
+                print(info_ScienceOn)
+                
+                self.info["author_id"] = author_id
+                self.info["Specialty"] = info_ScienceOn
+                self.infolist.append(self.info)
+                
+                self.driver.close()
+                self.driver.switch_to_window(self.driver.window_handles[1])
+                print(self.driver.current_url)
+                
+                 ####################3 상준이형 추가 코드 끝 ############################
+                self.author["authorInfo"] = self.infolist
+                print("title" , self.author)
+                
+                self.driver.find_element_by_xpath('/html/body/form[1]/nav/div[2]/button[2]').click()
+                print("여기서안돼?")
+                soup = BeautifulSoup(self.driver.page_source, 'html.parser')
                 a = soup.find('button',id = 'paper')      #여기서부터는 논문파트 
+                print("여기서안돼?")
+                print(a)
                 text = a.get_text()
+                print("여기서안돼?")
                 b = text.rfind('/')
                 c = text.rfind('건')
                 num = math.ceil(int(text[b+1:c])/10)

@@ -16,8 +16,8 @@ name = "유재수"
 idAgency = "충북대학교"
 host = '127.0.0.1'
 kafka_port = '9092'
-driver_path = "./chromedriver (2).exe"
-#  C:/Users/kjh19/OneDrive/바탕 화면/test/chromedriver.exe // 노트북
+driver_path = "./chromedriver.exe"
+#  ./chromedriver.exe // 노트북
 # ./chromedriver (2).exe  // 연구실 컴
 # /home/search/apps/dw/chromedriver 서버컴
 chrome_options = Options()
@@ -30,63 +30,130 @@ author = {}
 paper = []
 def crawl_paper(refer):
     try:
-        for num, ref in enumerate(refer[:10]):
+        for num, ref in enumerate(refer[:-1]):
             a= {}
-            # # 자바스크립트 수집 코드
-            # try:
-            #     js_crawl = ref.select_one('p > a:nth-child(3)')['onclick']
-            #     e  = js_crawl.find("('")
-            #     f  = js_crawl.find("')")
+            ############### 자바스크립트 수집 코드 ##############
+            try:
+                js_crawl = ref.select('p > a')
+                print(type(js_crawl))
+
+                for i in js_crawl:
+                    print(i["title"])
+                    print(i)
+                    if "NDSL 상세보기" == i["title"]:
+                        e  = i["onclick"].find("('")
+                        f  = i["onclick"].find("')")
+                        js_Data = i["onclick"][e+2:f]
+                print("자바스크립트",js_Data)
+            
+            except Exception as e:
+                print(e)
+                js_Data = ""
+                print("자바스크립트",js_Data)
+            
+            a["js_scienceon"] = js_Data
+            js_Data = ""
+
+            ############ 자바스크립트 수집 코드 종료 ##############
+
+            ############### 논문 제목 수집 시작  ##############
+            try:
+                title = ref.select_one('p > a > span')
+                title = title.text
                 
-            #     js_Data = js_crawl[e+2:f]
-            #     print(js_Data)
-            
-            # except Exception as e:
-            #     js_Data = ""
-            # # 자바스크립트 수집 코드 종료
-        
-            # # 논문 제목 수집 시작
-            # try:
-            #     title = ref.select_one('p > a > span')
-            #     title = title.text
+                if title == "[ScienceON]":
+                    
+                    title = ref.select_one('p')
+                    title = title.text
+                    title = re.sub('&nbsp; | &nbsp;| \n|\t|\r','',title).replace("\xa0","")
+                    title = title.replace("[ScienceON]","")
                 
-            #     if title == "[ScienceON]":
-            #         print(title,"수정 예정")
-            #         title = ref.select_one('p')
-            #         title = title.text
-            #         title = re.sub('&nbsp; | &nbsp;| \n|\t|\r','',title).replace("\xa0","")
-      
-            #     print(title)    
-            #     a["title"] = title
-            # except Exception as e:
-            #     title = ref.select_one('p')
-            #     title = title.text
-            #     title = re.sub('&nbsp; | &nbsp;| \n|\t|\r','',title).replace("\xa0","")
-            #     print(title)    
-            #     a["title"] = title
-            # # 논문 제목 수집 종료
-
-
-            # 공저자, 교신저자, 학회지 수집 시작
-
-            ref.p.decompose()
-            print(ref)
-           
-
-
+                print(title) 
+                print("1")
+            except Exception as e:
+                title = ref.select_one('p')
+                title = title.text
+                title = re.sub('&nbsp; | &nbsp;| \n|\t|\r','',title).replace("\xa0","")
+                print(title)    
+                
+                print("2")
+            a["title"] = title
+            ############## #논문 제목 수집 종료 ############## 
             
             
-            # title = title.text
-            # print(title)
-            # title = re.sub('&nbsp; | &nbsp;| \n|\t|\r','',title).replace("\xa0","")
-            # # a["title"] = title
-            # # print(a)
 
-            # ref.p.decompose()
-            # refs = ref.get_text(separator='|br|', strip=True).split('|br|')
-            # print(refs)
-            # print(a)
-            # paper.append(a)
+
+            ############### 공저자, 교신저자, 학회지 수집 시작 ##############
+            try:
+                ref.p.decompose()
+            except Exception as e:
+                print("p태그가 없습니다.")   
+            try:     
+                ref.span.decompose()
+            except Exception as e:
+                print("span태그가 없습니다.")   
+            
+            refs = ref.get_text(separator='|br|', strip=True).split('|br|') 
+            
+
+            if len(refs) == 1:
+                a["coau"] = ""
+                partition = refs[0]
+                num1 = partition.rfind("[")
+                num2 = partition.rfind("]")+1
+                num3 = partition.rfind("(")
+                num4 = partition.rfind(")")+1  
+                
+                if num1 != -1:
+                    ref2 = partition[num1:num2]
+                else:
+                    ref2 = ""
+                if num3 != -1:    
+                    year = partition[num3:num4] 
+                else:
+                    year = ""
+                
+                if num1 == -1 and num3 == -1:
+                    ref1 = partition
+                elif num3 ==-1:
+                    ref1 = partition[:num1]
+                elif num1 == -1:
+                    ref1 = partition[:num3]
+                else:
+                    ref1 = partition[:num1]
+
+
+            elif len(refs) == 2:
+                a["coau"] = refs[0]
+                partition = refs[1]
+                num1 = partition.rfind("[")
+                num2 = partition.rfind("]")+1
+                num3 = partition.rfind("(")
+                num4 = partition.rfind(")")+1  
+                if num1 != -1:
+                    ref2 = partition[num1:num2]
+                else:
+                    ref2 = ""
+                if num3 != -1:    
+                    year = partition[num3:num4] 
+                else:
+                    year = ""
+                
+                if num1 == -1 and num3 == -1:
+                    ref1 = partition
+                elif num3 ==-1:
+                    ref1 = partition[:num1]
+                elif num1 == -1:
+                    ref1 = partition[:num3]
+                else:
+                    ref1 = partition[:num1]
+            
+            a["year"] = year
+            a["ref1"] = ref1
+            a["ref2"] = ref2
+            pprint.pprint(a)
+            paper.append(a)
+            
     except Exception as e:
         print(e)
         print("논문 파트 오류")
@@ -146,6 +213,6 @@ for i in range(1):
     crawl_paper(refer)
     author["reference"] = paper
 
-print(author)
+print("최종출력", author)
 
 
