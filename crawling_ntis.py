@@ -20,9 +20,9 @@ def __main__ ():
         if i ==0:
             continue
         print(sys.argv[i])
-    input_name = "안병철"
-    input_idAgency = "충북대학교"
-    kotitle = "Provenance를 고려한 소셜 시맨틱 웹에서 클라우드 기반 빅 데이터 저장 및 처리"
+    input_name = "김중한"
+    input_idAgency = "가톨릭대학교"
+    kotitle = "원뿔교차점 및 계간교차점이 포함된 광화학 반응 메커니즘 규명에 관한 이론적 연구"
     
     nits_crawling(input_name,input_idAgency,kotitle).start_crwal() # 트리거
 
@@ -314,7 +314,7 @@ class nits_crawling:
             # print("여기인가?")
             soup = BeautifulSoup(self.driver.page_source, 'html.parser')
             
-            self.driver.find_element_by_xpath('/html/body/form[1]/nav/div[2]/button[4]').click()
+            self.driver.find_element_by_id('rnd').click()
             a = soup.find('button',id = 'rnd')      #여기서부터는 rnd파트
             text = a.get_text()
             b = text.rfind('(')
@@ -379,7 +379,7 @@ class nits_crawling:
                 self.author["rnd"] = self.papers
                 self.main_title(soup)
                 print("title" , self.author)
-                self.driver.find_element_by_xpath('/html/body/form[1]/nav/div[2]/button[2]').click()
+                self.driver.find_element_by_id('paper').click()
                 
 
                 a = soup.find('button',id = 'paper')      #여기서부터는 논문파트 
